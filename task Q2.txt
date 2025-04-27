@@ -1,0 +1,45 @@
+Q2: Network Troubleshooting - Detailed Solution:
+1. Verify DNS Resolution:
+# Check local DNS resolution
+nslookup internal.example.com
+
+# Check with Google's DNS (8.8.8.8)
+nslookup internal.example.com 8.8.8.8
+
+# Alternative using dig
+dig internal.example.com
+dig @8.8.8.8 internal.example.com
+
+2. Diagnose Service Reachability:
+# Get resolved IP (assuming it's 192.168.1.100 for example)
+resolved_ip=$(dig +short internal.example.com | head -1)
+
+# Check HTTP connectivity
+curl -Iv http://$resolved_ip
+curl -Iv http://internal.example.com
+
+# Check port connectivity
+telnet $resolved_ip 80
+telnet $resolved_ip 443
+
+# Check if service is listening (on server)
+netstat -tulnp | grep ':80\|:443'
+ss -tulnp | grep ':80\|:443'
+
+
+3. Potential Causes and Verification:
+A)DNS Misconfiguration:
+sudo nano /etc/resolv.conf  # Add correct nameserver
+B)Incorrect Hosts File Entry:
+sudo nano /etc/hosts
+C)Firewall Blocking:
+sudo iptables -L -n -v
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+D)Service Not Running:
+systemctl status apache2  # or nginx/httpd
+sudo systemctl start apache2
+E)Network Routing Issues
+ip route show
+traceroute $resolved_ip
+F)SSL/TLS Certificate Issues:
+openssl s_client -connect $resolved_ip:443 -servername internal.example.com | openssl x509 -noout -dates
